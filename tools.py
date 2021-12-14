@@ -8,7 +8,7 @@ import xlrd
 from xlutils.copy import copy
 import time
 
-from pyecharts.charts import Bar, WordCloud
+from pyecharts.charts import WordCloud
 from pyecharts import options as opts
 from pyecharts.charts import TreeMap
 from pyecharts.globals import SymbolType
@@ -27,16 +27,32 @@ class DataResolve:
     def __init__(self, html):
         self.html = html
 
+        try:
+            xlrd.open_workbook(".\\data\\filmData.xls")
+            open(".\\data\\logs.txt")
+        except:
+            # 初始化本地存储excel表格
+            print("filmData.xls文件不存在,创建filmData.xls文件")
+            workbook = xlwt.Workbook()  # 创建工作簿对象
+            workbook.add_sheet("sheet1")  # 创建工作表对象
+            workbook.save(".\\data\\filmData.xls")
+            print("创建logs.txt日志文件")
+            open(".\\data\\logs.txt", 'w')  # 初始化日志文件
+
     '''
         提供外部访问方法
     '''
 
     def resolve(self):
-        data = self.__resolvePicture()
+        log = open(".\\data\\logs.txt", 'a', encoding='utf-8')
+        currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        log.write('\n' + str(currentTime) + "爬取数据！")
+        log.close()
+        picture = self.__resolvePicture()
         score = self.__resolveScore()
         film = self.__resolveEvaluations()
         # self.__resolveFilmDownLoad()
-        return ''
+        return '解析结束'
 
     '''
         解析图片
@@ -201,7 +217,7 @@ class DataResolve:
         sheets_name = workbook.sheet_names()
         sheet = workbook.sheet_by_name(sheets_name[0])
         rows = sheet.nrows
-        new_workbook = copy(workbook)
+        new_workbook = copy(workbook)  # xlrd对象转为xlwt对象
         new_sheet = new_workbook.get_sheet(0)
         dataStyle = xlwt.XFStyle()  # 创建数据样式对象
         dataAlign = xlwt.Alignment()
@@ -231,11 +247,13 @@ class DataResolve:
 
 
 class Utils:
-    workbook = xlrd.open_workbook(".\\data\\filmData.xls")
-    sheet = workbook.sheets()[0]
     names = []
     comments = []
-    rows = int(sheet.nrows)
+
+    def __init__(self, excel_path):
+        workbook = xlrd.open_workbook(excel_path)
+        self.sheet = workbook.sheets()[0]
+        self.rows = int(self.sheet.nrows)
 
     def chooseData(self):
         # 随机从excel表中选出4个名称
@@ -244,6 +262,43 @@ class Utils:
             self.names.append(self.sheet.cell_value(flag, 0))
             self.comments.append(self.sheet.cell_value(flag, 4))
         return self.names, self.comments
+
+    @staticmethod
+    def choosePage(page_number=1):
+        start = 0  # 实际起始位置
+        if page_number == 1:  # 第一页
+            start = 0
+            return start
+        elif page_number == 2:  # 第二页
+            start = 25
+            return start
+        elif page_number == 3:  # 第三页
+            start = 50
+            return start
+        elif page_number == 4:  # 第四页
+            start = 75
+            return start
+        elif page_number == 5:  # 第五页
+            start = 100
+            return start
+        elif page_number == 6:  # 第六页
+            start = 125
+            return start
+        elif page_number == 7:  # 第七页
+            start = 150
+            return start
+        elif page_number == 8:  # 第八页
+            start = 175
+            return start
+        elif page_number == 9:  # 第九页
+            start = 200
+            return start
+        elif page_number == 10:  # 第十页
+            start = 225
+            return start
+        else:
+            raise '页码不合法'
+
 
 
 '''
@@ -266,7 +321,7 @@ class DataVisualization:
         workbook = xlrd.open_workbook(self.path)
         sheet = workbook.sheets()[0]
         rows = sheet.nrows
-        flag = 0
+        flag = 0  # excel表有效数据标识符
         firstPage = []
         secondPage = []
         thirdPage = []
@@ -391,15 +446,15 @@ class DataVisualization:
             )
                 .render(".\\data\\scatter1.html")
         )
+        return '散点图1生成成功'
 
     '''
         散点图2
     '''
 
     def Scatter2(self):
-        u = Utils
-        data = u.chooseData(u)
-        print(data)
+        u = Utils(excel_path='.\\data\\filmData.xls')
+        data = u.chooseData()
         c = (
             Scatter()
                 .add_xaxis(u.names)
@@ -410,6 +465,4 @@ class DataVisualization:
             )
                 .render(".\\data\\scatter2.html")
         )
-
-
-
+        return '散点图2生成成功'
