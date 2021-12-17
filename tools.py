@@ -29,13 +29,15 @@ class DataResolve:
 
         try:
             xlrd.open_workbook(".\\data\\filmData.xls")
-            open(".\\data\\logs.txt")
         except:
             # 初始化本地存储excel表格
             print("filmData.xls文件不存在,创建filmData.xls文件")
             workbook = xlwt.Workbook()  # 创建工作簿对象
             workbook.add_sheet("sheet1")  # 创建工作表对象
             workbook.save(".\\data\\filmData.xls")
+        try:
+            open(".\\data\\logs.txt")
+        except:
             print("创建logs.txt日志文件")
             open(".\\data\\logs.txt", 'w')  # 初始化日志文件
 
@@ -44,10 +46,7 @@ class DataResolve:
     '''
 
     def resolve(self):
-        log = open(".\\data\\logs.txt", 'a', encoding='utf-8')
-        currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        log.write('\n' + str(currentTime) + "爬取数据！")
-        log.close()
+        Utils.write_log()  # 日志记录
         picture = self.__resolvePicture()
         score = self.__resolveScore()
         film = self.__resolveEvaluations()
@@ -95,6 +94,7 @@ class DataResolve:
         time.sleep(0.1)
         print("影片评分解析成功")
         return self.filmScore
+
 
     '''
         解析评价数
@@ -168,7 +168,7 @@ class DataResolve:
         将数据写入Excel中
     '''
 
-    def writeExcel(self, sheet_name, save_path):
+    def writeExcel(self, sheet_name, save_path='.\\data\\filmData.xls'):
         workbook = xlwt.Workbook(encoding='ascii')  # 创建工作簿对象
         sheet = workbook.add_sheet(sheet_name)  # 创建工作表对象
 
@@ -265,6 +265,7 @@ class Utils:
 
     @staticmethod
     def choosePage(page_number=1):
+        print("爬取第" + str(page_number) + "页")
         start = 0  # 实际起始位置
         if page_number == 1:  # 第一页
             start = 0
@@ -299,6 +300,12 @@ class Utils:
         else:
             raise '页码不合法'
 
+    @staticmethod
+    def write_log():
+        log = open(".\\data\\logs.txt", 'a', encoding='utf-8')
+        currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        log.write('\n' + str(currentTime) + "爬取数据！")
+        log.close()
 
 
 '''
